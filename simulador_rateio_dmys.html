@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Rateio — D/MYS Home Design</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --bg:#F7F6F2;--surface:#fff;--border:#E2DFD8;--text:#1A1916;--muted:#6B6760;
+    --accent:#2C4B3F;--al:#EAF0ED;--am:#4A7C68;
+    --warn:#8B4513;--wbg:#FDF4EC;
+    --xbg:#F0F4F8;--xcol:#1E3A5F;
+    --tot:#2C4B3F;--totc:#fff;
+    --ok:#1A5C35;--okbg:#E8F5EE;
+    --err:#8B1A1A;--erbg:#FDF0F0;
+    --mono:'DM Mono',monospace;--sans:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px}
+  header{background:var(--accent);color:#fff;padding:32px 40px 28px}
+  .ey{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#A8C4B8;margin-bottom:8px}
+  header h1{font-size:22px;font-weight:600;letter-spacing:-.02em}
+  .sub{font-size:13px;color:#A8C4B8;margin-top:6px}
+  .W{max-width:960px;margin:0 auto;padding:0 20px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:28px;margin-top:24px}
+  .ct{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);
+      margin-bottom:20px;display:flex;align-items:center;gap:8px}
+  .ct::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px;display:inline-block;flex-shrink:0}
+  .sl{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field label{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .field input,.field select{
+    font-family:var(--mono);font-size:14px;height:38px;border:1.5px solid var(--border);
+    border-radius:6px;padding:0 11px;background:var(--bg);color:var(--text);
+    outline:none;transition:border-color .15s,background .15s;width:100%}
+  .field input:focus,.field select:focus{border-color:var(--accent);background:#fff}
+  .hint{font-size:10.5px;color:var(--muted);line-height:1.4;margin-top:2px}
+  .row1{display:flex;gap:14px;align-items:flex-start}
+  .row1 .fu{width:110px;flex-shrink:0}
+  .row1 .ff{width:200px;flex-shrink:0}
+  .div{height:1px;background:var(--border);margin:20px 0 16px}
+  .row2{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+  .row2 .fm{width:130px;flex-shrink:0}
+  .row2 .ft{width:170px;flex-shrink:0}
+  .row2 .fc{width:155px;flex-shrink:0}
+  .fbtn{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+  .fbtn::before{content:'\00a0';font-size:11px;display:block}
+  .ncl{font-size:11px;color:var(--am);background:var(--al);padding:6px 10px;
+       border-radius:6px;margin-top:10px;line-height:1.5;display:none}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:7px;height:38px;
+       padding:0 22px;font-family:var(--sans);font-size:13.5px;font-weight:600;
+       cursor:pointer;transition:background .15s,transform .1s}
+  .btn:hover{background:var(--am)}.btn:active{transform:scale(.98)}
+  /* accordion */
+  .otg{font-size:12px;font-weight:500;color:var(--am);cursor:pointer;display:inline-flex;
+       align-items:center;gap:5px;margin-top:20px;text-decoration:underline;
+       text-underline-offset:3px;border:none;background:none;padding:0}
+  .op{display:none;margin-top:14px}.op.open{display:block}
+  .bt{width:100%;border-collapse:collapse;font-size:13px}
+  .bt thead th{background:var(--al);color:var(--accent);font-weight:600;font-size:11px;
+    letter-spacing:.05em;text-transform:uppercase;padding:8px 10px;text-align:left;
+    border-bottom:1.5px solid var(--border)}
+  .bt thead th:not(:first-child){text-align:right}
+  .bt td{padding:7px 10px;border-bottom:1px solid var(--border)}
+  .bt td:not(:first-child){text-align:right;font-family:var(--mono);font-size:12.5px}
+  .bt .grp td{background:#F3F2EE;font-weight:700;font-size:10.5px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--muted);padding:5px 10px;border-bottom:none}
+  .bt .sub td{font-weight:600;background:var(--al);border-top:1.5px solid var(--border)}
+  .bt .xr td{background:var(--xbg);color:var(--xcol)}
+  .badge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.04em;
+    text-transform:uppercase;padding:1px 6px;border-radius:20px;margin-left:5px;vertical-align:middle}
+  .bx{background:var(--xbg);color:var(--xcol);border:1px solid #c5d8ef}
+  .bb{background:var(--al);color:var(--accent);border:1px solid #b8d4c8}
+  /* result */
+  #RES{display:none;margin-top:24px}
+  .rh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+  .utag{font-family:var(--mono);font-size:18px;font-weight:500;color:var(--accent)}
+  .meta{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .ftag{font-size:13px;color:var(--muted)}
+  .mtag{font-size:12px;color:var(--muted);background:var(--al);padding:2px 8px;border-radius:4px;font-weight:500}
+  .ptag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:4px}
+  .p2 {background:#FFF3E0;color:#7A3800;border:1px solid #F0C080}
+  .p2e{background:#FFF3E0;color:#7A3800;border:1px solid #F0C080}
+  .p3a{background:#E8F4FF;color:#1A3C6B;border:1px solid #A8C8F0}
+  .p3n{background:var(--al);color:var(--accent);border:1px solid #b8d4c8}
+  .sbs{display:flex;gap:14px;margin-top:20px;flex-wrap:wrap}
+  .sb{flex:1;min-width:150px;border-radius:8px;padding:14px 16px;border:1px solid var(--border)}
+  .sbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:4px}
+  .sv{font-family:var(--mono);font-size:19px;font-weight:500}
+  .sno{font-size:10.5px;font-weight:600;margin-top:4px}
+  .sn{background:var(--al)}.sn .sv{color:var(--accent)}
+  .sp{background:#F5F0FF;border-color:#C8B8E8}.sp .sv{color:#4A2080}
+  .so{background:var(--okbg);border-color:#a8d8bb}.so .sv,.so .sno{color:var(--ok)}
+  .se{background:var(--erbg);border-color:#f0b8b8}.se .sv,.se .sno{color:var(--err)}
+  .rt{width:100%;border-collapse:collapse;font-size:13px;margin-top:18px}
+  .rt thead th{background:var(--accent);color:#fff;font-size:11px;font-weight:600;
+    letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:left}
+  .rt thead th.r{text-align:right}.rt thead th.c{text-align:center}
+  .rt td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+  .rt td.r{text-align:right;font-family:var(--mono);font-size:12.5px}
+  .rt td.sc{text-align:center;font-size:12px;font-weight:600;white-space:nowrap}
+  .rt .grp td{background:#F3F2EE;font-size:10.5px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.06em;color:var(--muted);padding:5px 12px;border-bottom:none}
+  .rt .sub td{background:var(--al);font-weight:600;border-top:1.5px solid var(--border);color:var(--accent)}
+  .rt .sub td.r{font-family:var(--mono);font-size:13px}
+  .rt .xr td{background:var(--xbg);color:var(--xcol)}
+  .rt .cr td{background:#FFFBF0;color:#7A5500}
+  .rt .tot td{background:var(--tot);color:var(--totc);font-weight:700;font-size:14px;border-bottom:none}
+  .rt .tot td.r{font-family:var(--mono);font-size:14px}
+  .rt .ind td{background:#FAFAF8}
+  .tok{background:var(--okbg);color:var(--ok);border:1px solid #a8d8bb;border-radius:5px;padding:2px 8px;display:inline-block}
+  .ter{background:var(--erbg);color:var(--err);border:1px solid #f0b8b8;border-radius:5px;padding:2px 8px;display:inline-block}
+  .tna{color:#bbb;font-size:11px}
+  .dif{font-size:11px;font-family:var(--mono);display:block;margin-top:2px}
+  .dif.p{color:var(--ok)}.dif.n{color:var(--err)}
+  .note{font-size:12px;color:var(--muted);background:var(--wbg);border-left:3px solid var(--warn);
+        padding:10px 14px;border-radius:0 6px 6px 0;margin-top:16px;line-height:1.7}
+  .note strong{color:var(--warn)}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin-top:40px;padding:0 20px}
+  @media(max-width:640px){
+    header{padding:24px 20px}.card{padding:20px 14px}
+    .row1,.row2{flex-wrap:wrap}
+    .row1 .fu,.row1 .ff,.row2 .fm,.row2 .ft,.row2 .fc{width:100%}
+    .btn{width:100%}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="W">
+    <div class="ey">Condomínio D/MYS Home Design · CNPJ 54.793.615/0001-41</div>
+    <h1>Simulador de Rateio</h1>
+    <div class="sub">Rua Afonso Pena, 542 · Canto · Florianópolis/SC · 88 unidades</div>
+  </div>
+</header>
+
+<div class="W">
+  <div class="card">
+    <div class="ct">Identificação da Unidade</div>
+    <div class="sl">Unidade e fração ideal</div>
+    <div class="row1">
+      <div class="field fu"><label>Unidade</label><input type="text" id="iU" maxlength="10"></div>
+      <div class="field ff">
+        <label>Fração Ideal (%)</label>
+        <input type="number" id="iF" step="0.0001" min="0.01" max="10">
+        <span class="hint">Soma apto + vaga. Ex: 1,4788</span>
+      </div>
+    </div>
+    <div class="div"></div>
+    <div class="sl">Conferência do boleto <span style="font-weight:400;letter-spacing:0">(opcional)</span></div>
+    <div class="row2">
+      <div class="field fm">
+        <label>Mês / Ano</label>
+        <select id="iM" onchange="onMes()">
+          <option value="">— selecione —</option>
+          <optgroup label="Orç.2 · Celesc embutida (R$2.000)">
+            <option value="out2025">Out 2025</option>
+            <option value="nov2025">Nov 2025</option>
+            <option value="dez2025">Dez 2025</option>
+            <option value="jan2026">Jan 2026</option>
+            <option value="fev2026">Fev 2026</option>
+          </optgroup>
+          <optgroup label="Orç.3 alta (mar–abr/2026) · Celesc variável">
+            <option value="mar2026">Mar 2026</option>
+            <option value="abr2026">Abr 2026</option>
+          </optgroup>
+          <optgroup label="Orç.3 normal (mai/2026+) · Celesc variável">
+            <option value="mai2026">Mai 2026</option>
+            <option value="jun2026">Jun 2026</option>
+            <option value="jul2026">Jul 2026</option>
+            <option value="ago2026">Ago 2026</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field ft">
+        <label>Taxa Cond. Cobrada (R$)</label>
+        <input type="number" id="iC" step="0.01" min="0">
+        <span class="hint">Linha "Taxa de Condomínio" do boleto</span>
+      </div>
+      <div class="field fc" id="fCel" style="display:none">
+        <label>Celesc do Mês (R$)</label>
+        <input type="number" id="iCel" step="0.01" min="0">
+        <span class="hint">Fatura total Celesc do condomínio</span>
+      </div>
+      <div class="fbtn"><button class="btn" onclick="calc()">▶ Calcular</button></div>
+    </div>
+    <div class="ncl" id="nCel">⚡ <strong>Orçamento 3:</strong> Celesc é variável e deve ser informada separadamente para cálculo preciso.</div>
+    <button class="otg" onclick="togOrc(this)">▸ Ver base orçamentária completa</button>
+    <div class="op" id="OP">
+      <table class="bt">
+        <thead><tr><th>Rubrica</th><th>Orç.2<br><small>out/25–fev/26</small></th><th>Orç.3 Alta<br><small>mar–abr/26</small></th><th>Orç.3 Normal<br><small>mai/26+</small></th></tr></thead>
+        <tbody id="BT"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="RES">
+    <div class="card">
+      <div class="ct">Resultado do Rateio</div>
+      <div class="rh">
+        <span class="utag" id="rU">—</span>
+        <div class="meta">
+          <span class="ftag" id="rF">—</span>
+          <span class="mtag" id="rM" style="display:none">—</span>
+          <span class="ptag" id="rP" style="display:none">—</span>
+        </div>
+      </div>
+      <div class="sbs" id="SBS" style="display:none"></div>
+      <table class="rt">
+        <thead><tr>
+          <th>Rubrica</th>
+          <th class="r">Total Condomínio</th>
+          <th class="r">Esperado (sua fração)</th>
+          <th class="r" id="thC" style="display:none">Cobrado</th>
+          <th class="c" id="thS" style="display:none">Status</th>
+        </tr></thead>
+        <tbody id="RT"></tbody>
+      </table>
+      <div class="note" id="noteCalc"></div>
+    </div>
+  </div>
+</div>
+<footer>Dados extraídos de atas e balancetes oficiais · D/MYS Home Design · Uso interno · Não substitui boleto oficial</footer>
+
+<script>
+const TOL = 0.05;
+
+/* ══════════════════════════════════════════════════════════════════
+   PREMISSAS DE CÁLCULO — calibradas contra tabela de análise
+   ══════════════════════════════════════════════════════════════════
+   Orç.2   = R$ 46.005,27  (Celesc R$2.000 EMBUTIDA)
+   Extra1  = R$  1.500,00  (bônus colaboradores — AGE 15/09/2025)
+   Extra2  = R$  1.800,00  (Open Serviços fins de semana — AGE 11/12/2025, até fev/2026)
+   Orç.3 Alta   = R$ 49.938,04  (inclui ASG alta 3.200; Celesc FORA — variável)
+   Orç.3 Normal = R$ 48.138,04  (remove ASG alta 3.200, volta ASG regular 1.400 → −R$1.800)
+
+   Verificação cruzada (fração 1,4788%):
+   Out–Dez/2025: 47.505,27 × 1,4788% = R$ 702,51  ✓ (cobrado 702,49, dif −0,02)
+   Jan–Fev/2026: 49.305,27 × 1,4788% = R$ 729,13  ✓ (cobrado 729,11, dif −0,02)
+   Mar/2026:    (49.938,04 + 4.227,80) × 1,4788% = R$ 801,00  ✓ (cobrado 800,99, dif −0,01)
+   Abr/2026:    (49.938,04 + 5.767,85) × 1,4788% = R$ 823,78  ✓ (cobrado 823,76, dif −0,02)
+   Jun/2026:    (48.138,04 + 5.767,85) × 1,4788% = R$ 797,16  ✓ (cobrado 797,15, dif −0,01)
+   ══════════════════════════════════════════════════════════════════ */
+
+const ORC2       = 46005.27;
+const EXTRA1     = 1500.00;
+const EXTRA2     = 1800.00;
+const ORC3_ALTA  = 49938.04;   // Celesc NÃO embutida
+const ORC3_NORM  = 48138.04;   // Celesc NÃO embutida  (−1.800 ASG alta)
+const CELESC_EMB = 2000.00;    // Celesc embutida no Orç.2
+
+// Definição de cada período
+// base = subtotal fixo; celVar = true se Celesc é variável (Orç.3)
+const P = {
+  out2025: { lbl:"Out/2025", base:ORC2+EXTRA1,          celVar:false, tag:"Orç.2",         cls:"p2"  },
+  nov2025: { lbl:"Nov/2025", base:ORC2+EXTRA1,          celVar:false, tag:"Orç.2",         cls:"p2"  },
+  dez2025: { lbl:"Dez/2025", base:ORC2+EXTRA1,          celVar:false, tag:"Orç.2",         cls:"p2"  },
+  jan2026: { lbl:"Jan/2026", base:ORC2+EXTRA1+EXTRA2,   celVar:false, tag:"Orç.2 + Extras",cls:"p2e" },
+  fev2026: { lbl:"Fev/2026", base:ORC2+EXTRA1+EXTRA2,   celVar:false, tag:"Orç.2 + Extras",cls:"p2e" },
+  mar2026: { lbl:"Mar/2026", base:ORC3_ALTA,             celVar:true,  tag:"Orç.3 Alta",    cls:"p3a" },
+  abr2026: { lbl:"Abr/2026", base:ORC3_ALTA,             celVar:true,  tag:"Orç.3 Alta",    cls:"p3a" },
+  mai2026: { lbl:"Mai/2026", base:ORC3_NORM,             celVar:true,  tag:"Orç.3 Normal",  cls:"p3n" },
+  jun2026: { lbl:"Jun/2026", base:ORC3_NORM,             celVar:true,  tag:"Orç.3 Normal",  cls:"p3n" },
+  jul2026: { lbl:"Jul/2026", base:ORC3_NORM,             celVar:true,  tag:"Orç.3 Normal",  cls:"p3n" },
+  ago2026: { lbl:"Ago/2026", base:ORC3_NORM,             celVar:true,  tag:"Orç.3 Normal",  cls:"p3n" },
+};
+
+// Itens do orçamento com valores por versão
+// v2 = Orç.2 base; v3a = Orç.3 alta; v3n = Orç.3 normal
+const ORC = [
+  { g:"Pessoal e Contratos Terceirizados", itens:[
+    { n:"Portaria Remota (Orsegups)",              v2:3342.15, v3a:3656.98, v3n:3656.98 },
+    { n:"Aux. Serviços Gerais – 44h Semanais",     v2:5927.10, v3a:5927.10, v3n:5927.10 },
+    { n:"Zelador – 12x36",                         v2:12767.62,v3a:13245.00,v3n:13245.00},
+    { n:"ASG Extra – regular (máx. 4 diárias)",    v2:1400.00, v3a:null,    v3n:1400.00 },
+    { n:"ASG Extra – Alta Temporada jan–abr",       v2:null,    v3a:3200.00, v3n:null,
+      note3a:"Incluso no Orç.3 Alta (jan–abr/2026)" },
+    { n:"Piscineiro (mão de obra)",                v2:1300.00, v3a:1300.00, v3n:1300.00 },
+    { n:"Paisagismo / Jardineiro",                 v2:900.00,  v3a:900.00,  v3n:900.00  },
+    { n:"Bonificação 3 colaboradores",             v2:1500.00, v3a:1500.00, v3n:1500.00,
+      extra:"E1", note2:"AGE 15/09/2025" },
+    { n:"Open Serviços – fins de semana/feriados", v2:1800.00, v3a:null,    v3n:null,
+      extra:"E2", note2:"AGE 11/12/2025, vigência até fev/2026" },
+  ]},
+  { g:"Despesas Administrativas", itens:[
+    { n:"Honorários Síndico Profissional",         v2:3123.00, v3a:3123.00, v3n:3123.00 },
+    { n:"Honorários Assessoria Condominial (Start)",v2:1478.00, v3a:1478.00, v3n:1478.00 },
+    { n:"Telefone (Vivo)",                         v2:43.47,   v3a:43.47,   v3n:43.47   },
+    { n:"Internet (Portaria)",                     v2:600.00,  v3a:600.00,  v3n:600.00  },
+    { n:"Advocacia",                               v2:100.00,  v3a:100.00,  v3n:100.00  },
+  ]},
+  { g:"Manutenções Preventivas Obrigatórias", itens:[
+    { n:"Teste Ôhmico / Para-raio (2 anos)",       v2:150.00,  v3a:150.00,  v3n:150.00  },
+    { n:"Dedetização e Desratização (6/6 meses)",  v2:150.00,  v3a:150.00,  v3n:150.00  },
+    { n:"Extintores e Mangueiras (anual)",         v2:300.00,  v3a:300.00,  v3n:300.00  },
+    { n:"Manutenção Academia",                     v2:350.00,  v3a:350.00,  v3n:350.00  },
+    { n:"Manutenção Gerador (Stemac)",             v2:680.00,  v3a:680.00,  v3n:680.00  },
+    { n:"Manutenção Aquecedor Central (Broilo)",   v2:850.00,  v3a:850.00,  v3n:850.00  },
+    { n:"Manutenção Elevadores – Atlas Schindler", v2:2009.81, v3a:2009.81, v3n:2009.81 },
+    { n:"Manutenção Sistema de Automação (Creare)",v2:1638.00, v3a:1638.00, v3n:1638.00 },
+    { n:"Manutenção Caixa d'Água",                 v2:230.00,  v3a:230.00,  v3n:230.00  },
+    { n:"Manutenção Sistema de Bombas (Da Ilha)",  v2:1031.58, v3a:1031.58, v3n:1031.58 },
+    { n:"AVCB – Corpo de Bombeiros (anual)",       v2:377.21,  v3a:377.21,  v3n:377.21  },
+  ]},
+  { g:"Despesas Concessionárias", itens:[
+    { n:"Celesc – Energia Elétrica",
+      v2:2000.00, v3a:null, v3n:null, celesc:true,
+      note2:"Embutida no Orç.2 (R$2.000 fixo)",
+      note3:"Variável no Orç.3 — informada separadamente" },
+  ]},
+  { g:"Manutenções Rotineiras", itens:[
+    { n:"Manutenção Geral (Pequenos Reparos)",     v2:1500.00, v3a:1500.00, v3n:1500.00 },
+    { n:"Material de Limpeza (áreas comuns)",      v2:2000.00, v3a:2000.00, v3n:2000.00 },
+    { n:"Material Produto Piscina",                v2:600.00,  v3a:600.00,  v3n:600.00  },
+    { n:"Material Escritório / Brinquedoteca",     v2:70.96,   v3a:70.96,   v3n:70.96   },
+    { n:"Material Academia",                       v2:60.00,   v3a:60.00,   v3n:60.00   },
+    { n:"Manutenção Aromatizadores",               v2:313.00,  v3a:313.00,  v3n:313.00  },
+  ]},
+  { g:"Despesas Gerais", itens:[
+    { n:"Tarifas Bancárias",   v2:30.00,  v3a:30.00,  v3n:30.00  },
+    { n:"Cartórios / Juntas",  v2:133.37, v3a:133.37, v3n:133.37 },
+    { n:"Certificado Digital", v2:50.00,  v3a:50.00,  v3n:50.00  },
+    { n:"INSS Retido s/ NF",   v2:300.00, v3a:300.00, v3n:300.00 },
+    { n:"ISS Retido s/ NF",    v2:200.00, v3a:200.00, v3n:200.00 },
+  ]},
+];
+
+function onMes() {
+  const k = document.getElementById('iM').value;
+  const p = k ? P[k] : null;
+  const show = p && p.celVar;
+  document.getElementById('fCel').style.display = show ? '' : 'none';
+  document.getElementById('nCel').style.display = show ? '' : 'none';
+}
+
+function renderBT() {
+  let h='', s2=0, s3a=0, s3n=0;
+  ORC.forEach(g => {
+    h += `<tr class="grp"><td colspan="4">${g.g}</td></tr>`;
+    g.itens.forEach(i => {
+      const V2  = i.v2  ?? 0; s2  += V2;
+      const V3A = i.v3a ?? 0; s3a += V3A;
+      const V3N = i.v3n ?? 0; s3n += V3N;
+      const b1 = i.extra==='E1' ? `<span class="badge bx">AGE set/25</span>` : '';
+      const b2 = i.extra==='E2' ? `<span class="badge bx">AGE dez/25</span>` : '';
+      const nt = (i.note2||i.note3||i.note3a) ? `<br><span style="font-size:10.5px;color:#888">${i.note2||i.note3||''}</span>` : '';
+      const cls= (i.extra||i.celesc) ? ' class="xr"' : '';
+      const c2 = i.v2  != null ? fmt(i.v2)  : (i.celesc ? '<em style="color:#888;font-size:11px">embutida</em>' : '<span style="color:#ccc">—</span>');
+      const c3a= i.v3a != null ? fmt(i.v3a) : (i.celesc ? '<em style="color:#888;font-size:11px">variável</em>':'<span style="color:#ccc">—</span>');
+      const c3n= i.v3n != null ? fmt(i.v3n) : (i.celesc ? '<em style="color:#888;font-size:11px">variável</em>':'<span style="color:#ccc">—</span>');
+      h += `<tr${cls}><td>${i.n}${b1}${b2}${nt}</td><td>${c2}</td><td>${c3a}</td><td>${c3n}</td></tr>`;
+    });
+  });
+  const fr2=s2*.1, fr3a=s3a*.1, fr3n=s3n*.1;
+  h += `<tr class="sub"><td>Subtotal fixo aprovado</td><td>${fmt(s2)}</td><td>${fmt(s3a)}</td><td>${fmt(s3n)}</td></tr>`;
+  h += `<tr class="grp"><td colspan="4">Fundos (linhas separadas no boleto)</td></tr>`;
+  h += `<tr class="xr"><td>Fundo de Reserva (10%)<span class="badge bb">Convenção</span></td><td>${fmt(fr2)}</td><td>${fmt(fr3a)}</td><td>${fmt(fr3n)}</td></tr>`;
+  h += `<tr class="xr"><td>Fundo de Melhorias<span class="badge bx">AGE 09/07/2025</span></td><td colspan="3" style="text-align:right">R$&nbsp;1.948,86</td></tr>`;
+  document.getElementById('BT').innerHTML = h;
+}
+
+function calc() {
+  const unidade = document.getElementById('iU').value.trim() || '—';
+  const fStr = document.getElementById('iF').value.replace(',','.');
+  const fracao = parseFloat(fStr);
+  if (isNaN(fracao)||fracao<=0||fracao>10){alert('Informe uma fração ideal válida (ex: 1,4788)');return}
+  const pct = fracao/100;
+
+  const mk  = document.getElementById('iM').value;
+  const per = mk ? P[mk] : null;
+  const cob = parseFloat(document.getElementById('iC').value.replace(',','.'));
+  const cel = parseFloat(document.getElementById('iCel').value.replace(',','.'));
+  const temC = !isNaN(cob)&&cob>0;
+  const temCel= !isNaN(cel)&&cel>0;
+
+  // ── Base total ──
+  let baseFixa, celescVal, totalBase;
+  if (!per) {
+    // sem mês: usa Orç.3 normal como referência
+    baseFixa  = ORC3_NORM;
+    celescVal = temCel ? cel : CELESC_EMB;
+    totalBase = baseFixa + celescVal;
+  } else if (!per.celVar) {
+    // Orç.2: Celesc embutida no subtotal
+    baseFixa  = per.base;
+    celescVal = CELESC_EMB;
+    totalBase = baseFixa;
+  } else {
+    // Orç.3: Celesc variável
+    baseFixa  = per.base;
+    celescVal = temCel ? cel : CELESC_EMB; // fallback estimado
+    totalBase = baseFixa + celescVal;
+  }
+  const esp = totalBase * pct;
+
+  // ── Header ──
+  document.getElementById('rU').textContent = `Unidade ${unidade}`;
+  document.getElementById('rF').textContent = `Fração: ${fracao.toFixed(4).replace('.',',')}%`;
+  const mEl=document.getElementById('rM'), pEl=document.getElementById('rP');
+  if(per){mEl.textContent=per.lbl;mEl.style.display='';pEl.textContent=per.tag;pEl.className='ptag '+per.cls;pEl.style.display='';}
+  else{mEl.style.display='none';pEl.style.display='none';}
+  document.getElementById('thC').style.display=temC?'':'none';
+  document.getElementById('thS').style.display=temC?'':'none';
+
+  // ── Picker de coluna conforme período ──
+  const isV3A = per && per.cls==='p3a';
+  const isV3N = per && (per.cls==='p3n' || (!per.celVar===false && per.celVar));
+  const isV3  = per && per.celVar;
+  const isV2e = per && (mk==='jan2026'||mk==='fev2026');
+
+  function getVal(i) {
+    if (!per)      return i.v3n;
+    if (isV3A)     return i.v3a;
+    if (isV3)      return i.v3n;
+    // Orç.2 period
+    if (i.extra==='E2' && !isV2e) return null; // Extra2 só jan/fev
+    if (i.v3a!=null && i.v2==null && !i.extra) return null; // item só Orç.3
+    return i.v2;
+  }
+
+  const cs = temC ? 5 : 3;
+  let html = '';
+
+  ORC.forEach(g => {
+    html += `<tr class="grp"><td colspan="${cs}">${g.g}</td></tr>`;
+    g.itens.forEach(i => {
+      if (i.celesc) return; // tratado separado
+      const val = getVal(i);
+      if (val==null) return;
+      const eVal = val*pct;
+      const cls2 = i.extra ? ' class="xr"' : '';
+      const note = isV3A ? i.note3a : (isV3 ? i.note3 : i.note2);
+      const nt   = note ? `<br><small style="font-size:11px;color:#888">${note}</small>` : '';
+      const xc   = temC ? `<td class="r"><span class="tna">—</span></td><td class="sc"><span class="tna">—</span></td>` : '';
+      html += `<tr${cls2}><td>${i.n}${nt}</td><td class="r">${fmt(val)}</td><td class="r">${fmt(eVal)}</td>${xc}</tr>`;
+    });
+  });
+
+  // Celesc row
+  const celLbl = (!per || !per.celVar) ? `Celesc (embutida no Orç.2 — R$2.000 fixo)` : `⚡ Celesc – Energia Elétrica${!temCel?' <small style="color:#aaa;font-size:10.5px">(estimado R$2.000)</small>':''}`;
+  const celCls = (!per || !per.celVar) ? '' : ' class="cr"';
+  const celXC  = temC ? `<td class="r"><span class="tna">—</span></td><td class="sc"><span class="tna">—</span></td>` : '';
+  html += `<tr${celCls}><td>${celLbl}</td><td class="r">${fmt(celescVal)}</td><td class="r">${fmt(celescVal*pct)}</td>${celXC}</tr>`;
+
+  // Total
+  const cC = temC ? `<td class="r">${fmt(cob)}</td>` : '';
+  const sC = temC ? mkSt(cob,esp) : '';
+  html += `<tr class="sub">
+    <td>Total Base de Rateio${isV3&&!temCel?' <small style="color:var(--warn);font-size:10.5px">(Celesc estimada)</small>':''}</td>
+    <td class="r">${fmt(totalBase)}</td><td class="r">${fmt(esp)}</td>${cC}${sC}
+  </tr>`;
+
+  // Individuais
+  html += `<tr class="grp"><td colspan="${cs}">Cobranças Individuais por Medidor (não rateadas por fração)</td></tr>`;
+  [{n:"Água – Tarifa Fixa",o:"Valor fixo por unidade"},
+   {n:"Água – Consumo (m³)",o:"Conforme hidrômetro individual"},
+   {n:"Gás – Água Quente (m³)",o:"Conforme medidor individual"},
+   {n:"Gás – Taxa de Disponibilidade",o:"Valor fixo por unidade"},
+  ].forEach(x=>{
+    const xc=temC?`<td class="r" style="color:#bbb">—</td><td class="sc"><span class="tna">indiv.</span></td>`:'';
+    html+=`<tr class="ind"><td>${x.n}<br><small style="color:#999;font-size:11px">${x.o}</small></td>
+      <td class="r" style="color:#bbb">variável</td><td class="r" style="color:#bbb">variável</td>${xc}</tr>`;
+  });
+
+  document.getElementById('RT').innerHTML = html;
+
+  // Sumboxes
+  const sb=document.getElementById('SBS');
+  if(temC){
+    const d=cob-esp,ok=Math.abs(d)<=TOL,dt=(d>=0?'+':'')+fmt(d);
+    sb.innerHTML=`
+      <div class="sb sn"><div class="sbl">Esperado (rateio)</div><div class="sv">${fmt(esp)}</div></div>
+      <div class="sb sp"><div class="sbl">Cobrado no boleto</div><div class="sv">${fmt(cob)}</div></div>
+      <div class="sb ${ok?'so':'se'}">
+        <div class="sbl">Diferença</div><div class="sv">${dt}</div>
+        <div class="sno">${ok?'✓ Dentro da tolerância':d>0?'⚠ Cobrado a mais':'⚠ Cobrado a menos'}</div>
+      </div>`;
+    sb.style.display='flex';
+  } else sb.style.display='none';
+
+  // Note
+  const baseStr = per ? `${per.tag} — base fixa R$${fmt(baseFixa)} ${per.celVar?`+ Celesc R$${fmt(celescVal)}`:'(Celesc embutida R$2.000)'}` : 'Orç.3 Normal (referência)';
+  document.getElementById('noteCalc').innerHTML = `
+    <strong>Memória de cálculo:</strong> ${baseStr}<br>
+    Total base: R$${fmt(totalBase)} × ${(pct*100).toFixed(4)}% = <strong>R$${fmt(esp)}</strong><br><br>
+    <strong>Bases de referência por período:</strong><br>
+    • <strong>Out–Dez/2025:</strong> R$47.505,27 (Orç.2 + Extra1) → taxa 702 R$702,51<br>
+    • <strong>Jan–Fev/2026:</strong> R$49.305,27 (Orç.2 + Extra1 + Extra2) → taxa 702 R$729,13<br>
+    • <strong>Mar–Abr/2026:</strong> R$49.938,04 + Celesc real (Orç.3 Alta) → ex: +R$4.227,80 = R$801,00<br>
+    • <strong>Mai/2026+:</strong> R$48.138,04 + Celesc real (Orç.3 Normal, sem ASG alta) → ex: +R$5.767,85 = R$797,16<br><br>
+    <strong>Tolerância:</strong> diferença ≤ R$0,05 = arredondamento normal.<br>
+    <strong>Aprovações:</strong> Orç.2 AGE 21/08/2025 · Extra1 AGE 15/09/2025 · Extra2 AGE 11/12/2025 · Orç.3 AGO 24/02/2026.`;
+
+  document.getElementById('RES').style.display='block';
+  document.getElementById('RES').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function mkSt(c,e){
+  const d=c-e,ok=Math.abs(d)<=TOL;
+  if(ok)return`<td class="sc"><span class="tok">✓ OK</span></td>`;
+  const ds=(d>=0?'+':'')+fmt(d);
+  return`<td class="sc"><span class="ter">${d>0?'↑ a mais':'↓ a menos'}</span><span class="dif ${d>0?'n':'p'}">${ds}</span></td>`;
+}
+
+function fmt(v){
+  if(v==null||isNaN(v))return'—';
+  const s='R$\u00a0'+Math.abs(v).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return v<0?'−'+s:s;
+}
+
+function togOrc(btn){
+  const p=document.getElementById('OP');
+  p.classList.toggle('open');
+  btn.textContent=p.classList.contains('open')?'▾ Ocultar base orçamentária':'▸ Ver base orçamentária completa';
+}
+
+renderBT();
+</script>
+</body>
+</html>
